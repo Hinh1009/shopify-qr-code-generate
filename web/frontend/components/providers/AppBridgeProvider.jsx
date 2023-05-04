@@ -40,7 +40,7 @@ export function AppBridgeProvider({ children }) {
       window.__SHOPIFY_DEV_HOST;
 
     window.__SHOPIFY_DEV_HOST = host;
-
+    console.log('HOSTTTTT', host)
     return {
       host,
       apiKey: process.env.SHOPIFY_API_KEY,

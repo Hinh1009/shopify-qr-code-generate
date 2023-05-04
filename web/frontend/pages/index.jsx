@@ -1,86 +1,87 @@
 import {
-  Card,
   Page,
   Layout,
-  TextContainer,
-  Image,
-  Stack,
-  Link,
-  Text,
+  SkeletonBodyText,
+  EmptyState,
+  AlphaCard
 } from "@shopify/polaris";
-import { TitleBar } from "@shopify/app-bridge-react";
-
-import { trophyImage } from "../assets";
-
-import { ProductsCard } from "../components";
+import { TitleBar, useNavigate, Loading } from "@shopify/app-bridge-react";
+import { QRCodeIndex } from "../components";
 
 export default function HomePage() {
+  const QRCodes = [{
+    createdAt: "2022-06-13",
+    destination: "checkout",
+    title: "My first QR code",
+    id: 1,
+    discountCode: "SUMMERDISCOUNT",
+    product: {
+      title: "Faded t-shirt",
+    }
+  },
+  {
+    createdAt: "2022-06-13",
+    destination: "product",
+    title: "My second QR code",
+    id: 2,
+    discountCode: "WINTERDISCOUNT",
+    product: {
+      title: "Cozy parka",
+    }
+  },
+  {
+    createdAt: "2022-06-13",
+    destination: "product",
+    title: "QR code for deleted product",
+    id: 3,
+    product: {
+      title: "Deleted product",
+    }
+  }]
+
+  const isLoading = false
+  const isRefetching = false
+  const navigate = useNavigate()
+  const qrCodesMarkup = QRCodes.length ? (
+    < QRCodeIndex QRCodes={QRCodes} loading={isRefetching} />
+  ) : null
+  // const [loading, setLoading] = useState(true)
+
+  const loadingMarkup = isLoading ? (
+    <AlphaCard sectioned>
+      <Loading />
+      <SkeletonBodyText />
+    </AlphaCard>
+  ) : null
+
+  const emptyStateMarkup = !isLoading && !QRCodes?.length ? (
+    <AlphaCard sectioned>
+      <EmptyState
+        heading="Create unique QR codes for your product"
+        action={{
+          content: "Create QR code",
+          onAction: () => navigate("/qrcodes/new"),
+        }}
+        image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+      >
+        <p>
+          Allow customers to scan codes and buy products using their phones.
+        </p>
+      </EmptyState>
+    </AlphaCard>
+  ) : null
+
   return (
-    <Page narrowWidth>
-      <TitleBar title="App name" primaryAction={null} />
+    <Page fullWidth={!!qrCodesMarkup}>
+      <TitleBar title="QR Generate App" primaryAction={{
+        content: 'Create QR Code',
+        onAction: () => navigate('/qrcodes/new')
+      }} />
       <Layout>
         <Layout.Section>
-          <Card sectioned>
-            <Stack
-              wrap={false}
-              spacing="extraTight"
-              distribution="trailing"
-              alignment="center"
-            >
-              <Stack.Item fill>
-                <TextContainer spacing="loose">
-                  <Text as="h2" variant="headingMd">
-                    Nice work on building a Shopify app 🎉
-                  </Text>
-                  <p>
-                    Your app is ready to explore! It contains everything you
-                    need to get started including the{" "}
-                    <Link url="https://polaris.shopify.com/" external>
-                      Polaris design system
-                    </Link>
-                    ,{" "}
-                    <Link url="https://shopify.dev/api/admin-graphql" external>
-                      Shopify Admin API
-                    </Link>
-                    , and{" "}
-                    <Link
-                      url="https://shopify.dev/apps/tools/app-bridge"
-                      external
-                    >
-                      App Bridge
-                    </Link>{" "}
-                    UI library and components.
-                  </p>
-                  <p>
-                    Ready to go? Start populating your app with some sample
-                    products to view and test in your store.{" "}
-                  </p>
-                  <p>
-                    Learn more about building out your app in{" "}
-                    <Link
-                      url="https://shopify.dev/apps/getting-started/add-functionality"
-                      external
-                    >
-                      this Shopify tutorial
-                    </Link>{" "}
-                    📚{" "}
-                  </p>
-                </TextContainer>
-              </Stack.Item>
-              <Stack.Item>
-                <div style={{ padding: "0 20px" }}>
-                  <Image
-                    source={trophyImage}
-                    alt="Nice work on building a Shopify app"
-                    width={120}
-                  />
-                </div>
-              </Stack.Item>
-            </Stack>
-          </Card>
-        </Layout.Section>
-        <Layout.Section>
-          <ProductsCard />
+          {loadingMarkup}
+          {qrCodesMarkup}
+          {emptyStateMarkup}
         </Layout.Section>
       </Layout>
     </Page>

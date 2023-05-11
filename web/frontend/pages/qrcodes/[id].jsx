@@ -1,20 +1,23 @@
 import { TitleBar, Loading } from "@shopify/app-bridge-react";
-import { Card, Layout, Page, SkeletonBodyText } from "@shopify/polaris";
+import { LegacyCard, Layout, Page, SkeletonBodyText } from "@shopify/polaris";
 import { QRCodeForm } from "../../components";
+import { useParams } from "react-router-dom";
+import { useAppQuery } from "../../hooks";
 
 export default function QRCodeEdit() {
   const breadcrumbs = [{ content: 'QR Codes', url: '/' }]
-
-
+  const { id } = useParams()
   /* Mock values. Loading: false => preview page without loading markup */
-  const isLoading = false;
-  const isRefetching = false;
-  const QRCode = {
-    createdAt: "2022-06-13",
-    destination: "checkout",
-    title: "My first QR code",
-    product: {}
-  };
+  // const isLoading = false;
+  // const isRefetching = false;
+
+  const {data: QRCode, isLoading, isRefetching} = useAppQuery({
+    url: `/api/qrcodes/${id}`,
+    reactQueryOptions: {
+      /* Disable refetching because the QRCodeForm component ignores changes to its props */
+      refetchOnReconnect: false,
+    }
+  })
 
   return (
     <>
@@ -28,23 +31,23 @@ export default function QRCodeEdit() {
           <Loading />
           <Layout>
             <Layout.Section>
-              <Card sectioned title='Title'>
+              <LegacyCard sectioned title='Title' vertical={true}>
                 <SkeletonBodyText />
-              </Card>
-              <Card title="Product">
-                <Card.Section>
+              </LegacyCard>
+              <LegacyCard title="Product" vertical={true}>
+                <LegacyCard.Section>
                   <SkeletonBodyText lines={1} />
-                </Card.Section>
-                <Card.Section>
+                </LegacyCard.Section>
+                <LegacyCard.Section>
                   <SkeletonBodyText lines={3} />
-                </Card.Section>
-              </Card>
-              <Card sectioned title="Discount">
+                </LegacyCard.Section>
+              </LegacyCard>
+              <LegacyCard sectioned title="Discount" vertical={true}>
                 <SkeletonBodyText lines={2} />
-              </Card>
+              </LegacyCard>
             </Layout.Section>
             <Layout.Section secondary>
-              <Card sectioned title="QR code" />
+              <LegacyCard sectioned title="QR code" vertical={true}/>
             </Layout.Section>
           </Layout>
         </Page>

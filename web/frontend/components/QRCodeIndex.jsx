@@ -8,57 +8,47 @@ import { useMedia } from "@shopify/react-hooks";
 /* dayjs to format and display date */
 import dayjs from "dayjs";
 
-function SmallScreenCard({ id, title, product, discountCode, scans, createdAt, navigate }) {
+function SmallScreenCard({ _id, title, product, discountCode, __v, createdAt, navigate }) {
   return (
-    <UnstyledLink onClick={() => navigate(`qrcodes/${id}`)}>
+    <UnstyledLink
+      onClick={() => navigate(`qrcodes/${_id}`)}
+    >
       <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid #E1E3E5" }}>
-        <VerticalStack>
-          <VerticalStack.Item>
-            <Thumbnail
-              source={product?.images?.edges[0]?.node?.url || ImageMajor}
-              alt="placeholder"
-              color='base'
-              size="small"
-            />
-          </VerticalStack.Item>
-          <VerticalStack.Item fill>
-            <VerticalStack vertical={true}>
-              <VerticalStack.Item>
-                <p>
-                  <Text as="span" fontWeight="semibold">
-                    {truncate(title, 35)}
-                  </Text>
-                </p>
-                <p>{truncate(product?.title, 35)}</p>
-                <p>{dayjs(createdAt).format("MMMM D, YYYY")}</p>
-              </VerticalStack.Item>
-              <div style={{ display: 'flex' }}>
-                <div style={{ flex: '3' }}>
-                  <Text as="span" color="subdued">Discount</Text>
-                  <p>{discountCode || "-"}</p>
-                </div>
-                <div style={{ flex: '2' }}>
-                  <Text as="span" color="subdued">Scans</Text>
-                  <p>{scans}</p>
-                </div>
+        <VerticalStack vertical={true}>
+          <Thumbnail
+            source={product?.images?.edges?.[0]?.node || ImageMajor}
+            alt="placeholder"
+            color='base'
+            size="small"
+          />
+          <VerticalStack vertical={true}>
+            <p>
+              <Text as="span" fontWeight="semibold">
+                {truncate(title, 35)}
+              </Text>
+            </p>
+            <p>{truncate(product?.title, 35)}</p>
+            <p>{dayjs(createdAt).format("MMMM D, YYYY")}</p>
+            <div style={{ display: 'flex' }}>
+              <div style={{ flex: '3' }}>
+                <Text as="span" color="subdued">Discount</Text>
+                <p>{discountCode || "-"}</p>
               </div>
-            </VerticalStack>
-          </VerticalStack.Item>
+              <div style={{ flex: '2' }}>
+                <Text as="span" color="subdued">Scans</Text>
+                <p>{__v}</p>
+              </div>
+            </div>
+          </VerticalStack>
         </VerticalStack>
       </div>
     </UnstyledLink>
   )
 }
-
 export function QRCodeIndex({ QRCodes, loading }) {
   const navigate = useNavigate()
 
   const isSmallScreen = useMedia('(max-width: 640px)')
-
-  /* Map QR codes for small screen */
-  const smallScreenMarkup = QRCodes.map((QRCode) => (
-    <SmallScreenCard key={QRCode.id} navigate={navigate} {...QRCode} />
-  ))
 
   const resourceName = {
     singular: 'QR code',
@@ -66,28 +56,27 @@ export function QRCodeIndex({ QRCodes, loading }) {
   }
 
   const rowMarkup = QRCodes.map(
-    ({ id, title, product, discountCode, scans, createdAt }, index) => {
-      const deletedProduct = product.title.includes('Deleted product')
-
+    ({ _id, title, product, discountCode, __v, createdAt }, index) => {
+      const deletedProduct = product?.title?.includes('Deleted product')
       return (
         <IndexTable.Row
-          id={id}
-          key={id}
+          id={_id}
+          key={_id}
           position={index}
           onClick={() => {
-            navigate(`/qrcodes/${id}`)
+            navigate(`/qrcodes/${_id}`)
           }}
         >
           <IndexTable.Cell>
             <Thumbnail
-              source={product?.images?.edges[0]?.node?.url || ImageMajor}
+              source={product?.images?.edges?.[0]?.node?.url || ImageMajor}
               alt="placeholder"
               color="base"
               size="small"
             />
           </IndexTable.Cell>
           <IndexTable.Cell>
-            <UnstyledLink data-primary-link url={`/qrcodes/${id}`}>
+            <UnstyledLink data-primary-link url={`/qrcodes/${_id}`}>
               {truncate(title, 25)}
             </UnstyledLink>
           </IndexTable.Cell>
@@ -105,40 +94,42 @@ export function QRCodeIndex({ QRCodes, loading }) {
           <IndexTable.Cell>
             {dayjs(createdAt).format("MMMM D, YYYY")}
           </IndexTable.Cell>
-          <IndexTable.Cell>{scans}</IndexTable.Cell>
+          <IndexTable.Cell>{__v}</IndexTable.Cell>
         </IndexTable.Row>
       )
     }
   )
-
+  console.log('QRCODES DATA', QRCodes)
   /* small screen */
   return (
     <AlphaCard>
-    {isSmallScreen ? (
-      smallScreenMarkup
-    ) : (
-      <IndexTable
-        resourceName={resourceName}
-        itemCount={QRCodes.length}
-        headings={[
-          { title: "Thumbnail", hidden: true },
-          { title: "Title" },
-          { title: "Product" },
-          { title: "Discount" },
-          { title: "Date created" },
-          { title: "Scans" },
-        ]}
-        selectable={false}
-        loading={loading}
-      >
-        {rowMarkup}
-      </IndexTable>
-    )}
-  </AlphaCard>
+      {/* Map QR codes for small screen */}
+      {isSmallScreen ? QRCodes.map((QRCode) => (
+        <SmallScreenCard key={QRCode._id} navigate={navigate} {...QRCode} />
+      ))
+        : (
+          <IndexTable
+            resourceName={resourceName}
+            itemCount={QRCodes.length}
+            headings={[
+              { title: "Thumbnail", hidden: true },
+              { title: "Title" },
+              { title: "Product" },
+              { title: "Discount" },
+              { title: "Date created" },
+              { title: "Scans" },
+            ]}
+            selectable={false}
+            loading={loading}
+          >
+            {rowMarkup}
+          </IndexTable>
+        )}
+    </AlphaCard>
   )
 }
 
 /* A function to truncate long strings */
 function truncate(str, n) {
-  return str.length > n ? str.substr(0, n - 1) + "…" : str;
+  return str?.length > n ? str.substr(0, n - 1) + "…" : (str || '');
 }

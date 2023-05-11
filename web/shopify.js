@@ -1,26 +1,28 @@
-import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
+import { LATEST_API_VERSION } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
-import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
-import { restResources } from "@shopify/shopify-api/rest/admin/2023-04";
+import { MongoDBSessionStorage } from '@shopify/shopify-app-session-storage-mongodb'
+// import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
+// import { restResources } from "@shopify/shopify-api/rest/admin/2023-04";
+import mongoose from "mongoose";
+// const DB_PATH = `${process.cwd()}/database.sqlite`;
+const DB_PATH = `mongodb://localhost:27017/qr-codes`
+const db = mongoose.connect(DB_PATH, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('Connect success to mongodb')
+}).catch((err) => {
+  console.log('Have some errors: ', err)
+}) 
 
-const DB_PATH = `${process.cwd()}/database.sqlite`;
-
-// The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
-// See the ensureBilling helper to learn more about billing in this template.
-const billingConfig = {
-  "My Shopify One-Time Charge": {
-    // This is an example configuration that would do a one-time charge for $5 (only USD is currently supported)
-    amount: 5.0,
-    currencyCode: "USD",
-    interval: BillingInterval.OneTime,
-  },
-};
+let { restResources } = await import(
+  `@shopify/shopify-api/rest/admin/${LATEST_API_VERSION}`
+);
 
 const shopify = shopifyApp({
   api: {
-    apiVersion: LATEST_API_VERSION,
+    // apiVersion: LATEST_API_VERSION,
     restResources,
-    billing: undefined, // or replace with billingConfig above to enable example billing
   },
   auth: {
     path: "/api/auth",
@@ -30,7 +32,8 @@ const shopify = shopifyApp({
     path: "/api/webhooks",
   },
   // This should be replaced with your preferred storage strategy
-  sessionStorage: new SQLiteSessionStorage(DB_PATH),
+  sessionStorage: new MongoDBSessionStorage(DB_PATH),
+  // sessionStorage: new SQLiteSessionStorage(DB_PATH)
 });
 
 export default shopify;

@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 import shopify from "./shopify.js";
-import { formatQrCodeResponse, getShopUrlFromSession, parseQrCodeBody } from "./helpers/qr-codes.js";
-import QRCode from "qrcode";
-
-// const DEFAULT_DB_FILE = `mongodb://localhost:27017/qr-codes`
-const DEFAULT_PURCHASE_QUANTITY = 1
 
 /* init qr codes collection */
 const qrCodesSchema = new mongoose.Schema({
@@ -27,12 +22,10 @@ export const qrCodesTable = mongoose.model('qr_codes', qrCodesSchema)
 /* CRUD apis */
 export const qrCodesHandlers = {
   // insert data
-  async create(req, res, next) {
+  create: async function (data) {
     try {
-      const data = await parseQrCodeBody(req)
-      const shopDomain = await getShopUrlFromSession(req, res)
-      const item = await qrCodesTable.create({...data, shopDomain})
-      res.json(item)
+      const item = await qrCodesTable.create(data)
+      return item
     }
     catch (err) {
       next(err)
@@ -40,63 +33,37 @@ export const qrCodesHandlers = {
   },
 
   // find all qrcodes
-  async findList(req, res, next) {
-    try {
-      const response = await qrCodesTable.find()
-      const items = await formatQrCodeResponse(req,res, response)
-      res.json(items)
-    } catch (error) {
-      next(error)
-    }
+  findList: async function () {
+    const items = await qrCodesTable.find()
+    return items.map((qrcode) => this.__addImageUrl(qrcode))
   },
 
   // find by Id
-  async findById(req, res, next) {
-    try {
-      const id = req.params.id
-      const response = await qrCodesTable.findById(id)
-      const item = await formatQrCodeResponse(req, res, [response])
-      res.json(item?.[0])
-    } catch (error) {
-      next(error)
+  findById: async function (id) {
+    let response = await qrCodesTable.findById(id)
+    if (response) {
+      return this.__addImageUrl(response)
     }
   },
 
   // update data
-  async update(req, res, next) {
-    try {
-      let data = req.body
-      let id = req.params.id
-      if (!id) {
-        throw new Error('Missing ID')
+  update: async function (id, data) {
+    const item = await qrCodesTable.findByIdAndUpdate(
+      id,
+      data,
+      {
+        new: true,
+        runValidators: true,
+        useFindAndModify: false,
       }
-      let item = await qrCodesTable.findByIdAndUpdate(
-        id,
-        data,
-        {
-          new: true,
-          runValidators: true,
-          useFindAndModify: false,
-        }
-      )
-      res.json(item)
-
-    } catch (error) {
-      next(error)
-    }
+    )
+    return item
   },
 
   //delete
-  async delete(req, res, next) {
-    try {
-      let id = req.params.id
-
-      let item = await qrCodesTable.findByIdAndDelete(id)
-
-      res.json(item)
-    } catch (error) {
-      next(error)
-    }
+  delete: async function (id) {
+    const item = await qrCodesTable.findByIdAndDelete(id)
+    return item
   },
 
   // generateQrcodeDestinationUrl
@@ -105,11 +72,11 @@ export const qrCodesHandlers = {
   },
 
   /* QR code scan */
-  async __increaseScanCount(qrcode) {
+  __increaseScanCount: async function (qrcode) {
     const id = qrcode._id
-    const item = await qrCodesTable.findByIdAndUpdate(id, {scans : {$inc: 1}})
+    const item = await qrCodesTable.findByIdAndUpdate(id, { scans: { $inc: 1 } })
     res.json(item)
-  } ,
+  },
   /* The behavior when a QR code is scanned */
   async handleCodeScan(qrcode) {
     await this.__increaseScanCount(qrcode)
@@ -161,18 +128,19 @@ export const qrCodesHandlers = {
 
   // async addQRCodePreview(req, res, next) {
   //   try {
-  //     const id =req.params.id
+  //     const id = req.params.id
   //     const qrcode = await qrCodesTable.findById(id)
-  //     if(qrcode) {
+  //     res.json(qrcode)
+  //     if (qrcode) {
   //       const destinationUrl = this.generateQrcodeDestinationUrl(qrcode)
-  //     res
-  //       .status(200)
-  //       .set("Content-Type", "image/png")
-  //       .set(
-  //         "Content-Disposition",
-  //         `inline; filename="qr_code_${qrcode._id}.png"`
-  //       )
-  //       .send(await QRCode.toBuffer(destinationUrl));
+  //       res
+  //         .status(200)
+  //         .set("Content-Type", "image/png")
+  //         .set(
+  //           "Content-Disposition",
+  //           `inline; filename="qr_code_${qrcode._id}.png"`
+  //         )
+  //         .send(await QRCode.toBuffer(destinationUrl));
   //     }
   //   } catch (error) {
   //     next(error)

@@ -38,20 +38,18 @@ export async function getShopUrlFromSession(req, res) {
 
 export async function getQrCodeOr404(req, res, checkDomain = true) {
   try {
-    // const res = await qrCodesHandlers.findById(req.params.id)
-    const res = await qrCodesHandlers.findById(req.params.id)
-    console.log('ITEMQROR404', res)
-    if (res === undefined ||
+    const response = await qrCodesHandlers.findById(req.params.id)
+    // const res = await qrCodesHandlers.findById(id)
+    if (response === undefined ||
       (checkDomain &&
-        (await getShopUrlFromSession(req, res) !== res.shopDomain))) {
+        (await getShopUrlFromSession(req, res) !== response.shopDomain))) {
       res.status(404).send()
     } else {
-      res.status(500).send(error.message)
+      return res.json(response)
     }
   } catch (error) {
     res.status(500).send(error.message)
   }
-
   return undefined
 }
 

@@ -9,6 +9,7 @@
 import express from 'express'
 import shopify from '../shopify.js'
 import { qrCodesHandlers } from '../qr-codes-db.js'
+import { formatQrCodeResponse, getShopUrlFromSession, parseQrCodeBody } from '../helpers/qr-codes.js';
 
 const SHOP_DATA_QUERY = `
   query shopData($first: Int!) {
@@ -75,11 +76,42 @@ export default function applyQrCodeApiEndpoints(app) {
     res.send(shopData.body.data)
   })
 
-  app.post('/api/qrcodes', qrCodesHandlers.create)
-  app.get('/api/qrcodes', qrCodesHandlers.findList)
-  app.get('/api/qrcodes/:id', qrCodesHandlers.findById)
-  app.patch('/api/qrcodes/:id', qrCodesHandlers.update)
-  app.delete('/api/qrcodes/:id', qrCodesHandlers.delete)
-  // app.get("/qrcodes/:id/image", qrCodesHandlers.addQRCodePreview)
-  // app.get('/qrcodes/:id/scan', qrCodesHandlers.getURLAfterScan)
+  app.post('/api/qrcodes', async (req, res) => {
+    const dataForm = await parseQrCodeBody(req)
+    const shopDomain = await getShopUrlFromSession(req, res)
+    const data = {...dataForm, shopDomain} 
+    const item = await qrCodesHandlers.create(data)
+    return res.json(item)
+  })
+
+  app.get('/api/qrcodes', async (req, res) => {
+    const result = await qrCodesHandlers.findList()
+    const items = await formatQrCodeResponse(req, res, result)
+    return res.json(items)
+  })
+
+  app.get('/api/qrcodes/:id', async (req, res) => {
+    const result = await qrCodesHandlers.findById(req.params.id);
+    const item = await formatQrCodeResponse(req, res, [result])
+    return res.json(item?.[0]);
+  })
+
+  app.patch('/api/qrcodes/:id', async(req, res) => {
+    const id = req.params.id
+    if (!id) {
+      throw new Error('Missing ID')
+    }
+    const data = await parseQrCodeBody(req)
+    const response = await qrCodesHandlers.update(id, data)
+    res.json(response)
+  })
+
+  app.delete('/api/qrcodes/:id', async(req, res) => {
+    const id = req.params.id
+    if(!id) {
+      throw new Error('Missing ID')
+    }
+    const response = await qrCodesHandlers.delete(id)
+    res.json(response)
+  })
 }

@@ -10,7 +10,6 @@ import applyQrCodePublicEndpoints from "./middleware/qr-code-public.js";
 
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
-
 const STATIC_PATH =
   process.env.NODE_ENV === "production"
     ? `${process.cwd()}/frontend/dist`
@@ -29,14 +28,13 @@ app.post(
   shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
 );
 
-applyQrCodePublicEndpoints(app)
-
 // If you are adding routes outside of the /api path, remember to
 // also add a proxy rule for them in web/frontend/vite.config.js
 
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 applyQrCodeApiEndpoints(app)
+applyQrCodePublicEndpoints(app)
 
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
@@ -50,5 +48,5 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
 app.listen(PORT, (err) => {
   err
     ? console.log('Server has error: ', err)
-    : console.log('Server opened on port: ', PORT)
+    : console.log(`Server opened on port: ${PORT}`)
 })

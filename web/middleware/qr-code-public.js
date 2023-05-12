@@ -11,8 +11,8 @@ export default function applyQrCodePublicEndpoints(app) {
 
   app.get("/qrcodes/:id/image", async (req, res) => {
     const qrcode = await getQrCodeOr404(req, res, false);
-    // const qrcode = await qrCodesHandlers.findById(req.params.id)
-    // qrcode = qrcode.toJSON()
+    // const id = req.params.id
+    // const qrcode = await qrCodesHandlers.findById(id)
     if (qrcode) {
       const destinationUrl = qrCodesHandlers.generateQrcodeDestinationUrl(qrcode);
       res

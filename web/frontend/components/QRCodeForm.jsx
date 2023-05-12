@@ -138,7 +138,7 @@ export function QRCodeForm({ QRCode: InitialQRCode }) {
   // const getQrCodesURL = async () => {
   //   const response = await fetch(`${QRCodeURL}`, {
   //     method: 'GET',
-  //     // headers: { "Content-Type": "image/png" }
+  //     headers: { "Content-Type": "image/png" }
   //   }).then(res => {
   //     console.log('RESPONSE', res)
   //   })

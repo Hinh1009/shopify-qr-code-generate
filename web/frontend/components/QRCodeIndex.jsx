@@ -56,8 +56,18 @@ export function QRCodeIndex({ QRCodes, loading }) {
   }
 
   const rowMarkup = QRCodes.map(
-    ({ _id, title, product, discountCode, __v, createdAt }, index) => {
+    ( QRCode, index) => {
+      const product = QRCode.product
+      const discountCode = QRCode.discountCode
+      const createdAt = QRCode.createdAt
+
       const deletedProduct = product?.title?.includes('Deleted product')
+      
+      const QRCodeDocs = QRCode._doc
+      const _id = QRCodeDocs._id
+      const title = QRCodeDocs.title
+      const __v = QRCodeDocs.__v
+
       return (
         <IndexTable.Row
           id={_id}
@@ -105,7 +115,7 @@ export function QRCodeIndex({ QRCodes, loading }) {
     <AlphaCard>
       {/* Map QR codes for small screen */}
       {isSmallScreen ? QRCodes.map((QRCode) => (
-        <SmallScreenCard key={QRCode._id} navigate={navigate} {...QRCode} />
+        <SmallScreenCard key={QRCode._doc._id} navigate={navigate} {...QRCode} />
       ))
         : (
           <IndexTable

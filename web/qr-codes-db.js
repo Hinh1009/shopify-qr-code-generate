@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import shopify from "./shopify.js";
 
+const DEFAULT_PURCHASE_QUANTITY = 1
+
 /* init qr codes collection */
 const qrCodesSchema = new mongoose.Schema({
   shopDomain: String,
@@ -34,16 +36,20 @@ export const qrCodesHandlers = {
 
   // find all qrcodes
   findList: async function () {
-    const items = await qrCodesTable.find()
-    return items.map((qrcode) => this.__addImageUrl(qrcode))
+    let items = await qrCodesTable.find()
+    items.map((item) => {
+      item = item._doc
+      return __addImageUrl(item)
+    }
+    )
+    return items
   },
 
   // find by Id
   findById: async function (id) {
     let response = await qrCodesTable.findById(id)
-    if (response) {
-      return this.__addImageUrl(response)
-    }
+    response = response._doc
+    return __addImageUrl(response)
   },
 
   // update data
@@ -64,11 +70,6 @@ export const qrCodesHandlers = {
   delete: async function (id) {
     const item = await qrCodesTable.findByIdAndDelete(id)
     return item
-  },
-
-  // generateQrcodeDestinationUrl
-  generateQrcodeDestinationUrl: function (qrcode) {
-    return `${shopify.api.config.hostScheme}://${shopify.api.config.hostName}/qrcodes/${qrcode._id}/scan`
   },
 
   /* QR code scan */
@@ -95,20 +96,6 @@ export const qrCodesHandlers = {
     }
   },
 
-  __addImageUrl: function (qrcode) {
-    try {
-      qrcode.imageUrl = this.__generateQrcodeImageUrl(qrcode);
-    } catch (err) {
-      console.error(err);
-    }
-
-    return qrcode;
-  },
-
-  __generateQrcodeImageUrl: function (qrcode) {
-    return `${shopify.api.config.hostScheme}://${shopify.api.config.hostName}/qrcodes/${qrcode._id}/image`;
-  },
-
   __goToProductView: function (url, qrcode) {
     return productViewURL({
       discountCode: qrcode.discountCode,
@@ -125,39 +112,6 @@ export const qrCodesHandlers = {
       quantity: DEFAULT_PURCHASE_QUANTITY,
     });
   },
-
-  // async addQRCodePreview(req, res, next) {
-  //   try {
-  //     const id = req.params.id
-  //     const qrcode = await qrCodesTable.findById(id)
-  //     res.json(qrcode)
-  //     if (qrcode) {
-  //       const destinationUrl = this.generateQrcodeDestinationUrl(qrcode)
-  //       res
-  //         .status(200)
-  //         .set("Content-Type", "image/png")
-  //         .set(
-  //           "Content-Disposition",
-  //           `inline; filename="qr_code_${qrcode._id}.png"`
-  //         )
-  //         .send(await QRCode.toBuffer(destinationUrl));
-  //     }
-  //   } catch (error) {
-  //     next(error)
-  //   }
-  // },
-
-  // async getURLAfterScan(req, res, next) {
-  //   try {
-  //     const id = req.params.id
-  //     const qrcode = await qrCodesTable.findById(id)
-  //     if(qrcode) {
-  //       res.redirect(await qrCodesHandlers.handleCodeScan(qrcode));
-  //     }
-  //   } catch (error) {
-  //     next(error)
-  //   }
-  // }
 }
 
 /* Generate the URL to a product page */
@@ -192,4 +146,17 @@ function productCheckoutURL({ host, variantId, quantity = DEFAULT_PURCHASE_QUANT
   }
 
   return url.toString();
+}
+
+function __addImageUrl(qrcode) {
+  qrcode.imageUrl = __generateQrcodeImageUrl(qrcode);
+  return qrcode;
+}
+
+function __generateQrcodeImageUrl(qrcode) {
+  return `${shopify.api.config.hostScheme}://${shopify.api.config.hostName}/qrcodes/${qrcode._id}/image`;
+}
+
+export const generateQrcodeDestinationUrl = (qrcode) => {
+  return `${shopify.api.config.hostScheme}://${shopify.api.config.hostName}/qrcodes/${qrcode._id}/scan`
 }

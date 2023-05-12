@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   Banner,
   LegacyCard,
@@ -74,7 +74,9 @@ export function QRCodeForm({ QRCode: InitialQRCode }) {
         const QRCode = await response.json()
         /* if this is a new QR code, then save the QR code and navigate to the edit page; this behavior is the standard when saving resources in the Shopify admin */
         if (!QRCodeId) {
-          navigate(`/qrcodes/${QRCode._id}`);
+          // const id = QRCode._id
+          const id = QRCode._id
+          navigate(`/qrcodes/${id}`);
           // navigate(`/`)
           /* if this is a QR code update, update the QR code state in this component */
         } else {
@@ -132,19 +134,10 @@ export function QRCodeForm({ QRCode: InitialQRCode }) {
   });
 
   const QRCodeURL = QRCode
-    ? new URL(`/qrcodes/${QRCode._id}/image`, location.toString()).toString()
+    // ? new URL(`/qrcodes/${QRCode._id}/image`, location.toString()).toString()
+    ? QRCode.imageUrl
     : null;
 
-  // const getQrCodesURL = async () => {
-  //   const response = await fetch(`${QRCodeURL}`, {
-  //     method: 'GET',
-  //     headers: { "Content-Type": "image/png" }
-  //   }).then(res => {
-  //     console.log('RESPONSE', res)
-  //   })
-  // }
-
-  // useEffect(getQrCodesURL() ,[QRCode, QRCodeURL])
   /*
     This function is called with the selected product whenever the user clicks "Add" in the ResourcePicker.
 
@@ -421,7 +414,13 @@ export function QRCodeForm({ QRCode: InitialQRCode }) {
         <Layout.Section secondary>
           <LegacyCard sectioned title="QR code" vertical>
             {QRCode ? (
-              <EmptyState imageContained={true} image={QRCodeURL} />
+              <EmptyState>
+                <Thumbnail
+                  source={QRCodeURL}
+                  size="large"
+                  alt="QR Code"
+                ></Thumbnail>
+              </EmptyState>
             ) : (
               <EmptyState>
                 <p>Your QR code will appear here after you save.</p>

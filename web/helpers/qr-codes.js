@@ -110,7 +110,7 @@ export async function formatQrCodeResponse(req, res, rawCodeData) {
     Replace the product, discount and variant IDs with the data fetched using the Shopify GraphQL Admin API.
   */
   const formattedData = rawCodeData.map((qrCode) => {
-    qrCode = qrCode.toJSON();
+    // qrCode = qrCode.toJSON()
     const product = adminData.body.data.nodes.find(
       (node) => qrCode.productId === node?.id
     ) || {

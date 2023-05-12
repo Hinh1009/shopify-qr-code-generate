@@ -91,7 +91,7 @@ export default function applyQrCodeApiEndpoints(app) {
   })
 
   app.get('/api/qrcodes/:id', async (req, res) => {
-    const result = await qrCodesHandlers.findById(req.params.id);
+    const result = await qrCodesHandlers.findById(req.params.id)
     const item = await formatQrCodeResponse(req, res, [result])
     return res.json(item?.[0]);
   })

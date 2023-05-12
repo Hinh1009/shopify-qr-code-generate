@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import { qrCodesHandlers } from "../qr-codes-db.js";
+import { generateQrcodeDestinationUrl, qrCodesHandlers } from "../qr-codes-db.js";
 import { getQrCodeOr404 } from '../helpers/qr-codes.js'
 
 export default function applyQrCodePublicEndpoints(app) {
@@ -10,11 +10,13 @@ export default function applyQrCodePublicEndpoints(app) {
   */
 
   app.get("/qrcodes/:id/image", async (req, res) => {
-    const qrcode = await getQrCodeOr404(req, res, false);
-    // const id = req.params.id
-    // const qrcode = await qrCodesHandlers.findById(id)
+    try {
+      // const qrcode = await getQrCodeOr404(req, res, false);
+    const id = req.params.id
+    const qrcode = await qrCodesHandlers.findById(id)
+
     if (qrcode) {
-      const destinationUrl = qrCodesHandlers.generateQrcodeDestinationUrl(qrcode);
+      const destinationUrl = generateQrcodeDestinationUrl(qrcode);
       res
         .status(200)
         .set("Content-Type", "image/png")
@@ -22,7 +24,12 @@ export default function applyQrCodePublicEndpoints(app) {
           "Content-Disposition",
           `inline; filename="qr_code_${qrcode._id}.png"`
         )
-        .send(await QRCode.toBuffer(destinationUrl));
+        .send(await QRCode.toDataURL(destinationUrl, {
+          type: 'png'
+        }));
+    }
+    } catch (error) {
+      console.log('ERRORRRR:', error)
     }
   });
 

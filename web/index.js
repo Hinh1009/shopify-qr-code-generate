@@ -28,13 +28,14 @@ app.post(
   shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
 );
 
+applyQrCodePublicEndpoints(app)
+
 // If you are adding routes outside of the /api path, remember to
 // also add a proxy rule for them in web/frontend/vite.config.js
 
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 applyQrCodeApiEndpoints(app)
-applyQrCodePublicEndpoints(app)
 
 app.use(serveStatic(STATIC_PATH, { index: false }));
 

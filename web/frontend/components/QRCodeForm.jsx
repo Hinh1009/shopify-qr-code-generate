@@ -414,12 +414,7 @@ export function QRCodeForm({ QRCode: InitialQRCode }) {
         <Layout.Section secondary>
           <LegacyCard sectioned title="QR code" vertical>
             {QRCode ? (
-              <EmptyState>
-                <Thumbnail
-                  source={QRCodeURL}
-                  size="large"
-                  alt="QR Code"
-                ></Thumbnail>
+              <EmptyState imageContained={true} image={QRCodeURL}>
               </EmptyState>
             ) : (
               <EmptyState>

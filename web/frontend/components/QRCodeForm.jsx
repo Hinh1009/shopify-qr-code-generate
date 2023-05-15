@@ -134,8 +134,8 @@ export function QRCodeForm({ QRCode: InitialQRCode }) {
   });
 
   const QRCodeURL = QRCode
-    // ? new URL(`/qrcodes/${QRCode._id}/image`, location.toString()).toString()
-    ? QRCode.imageUrl
+    ? new URL(`/qrcodes/${QRCode._id}/image`, location.toString()).toString()
+    // ? QRCode.imageUrl
     : null;
 
   /*

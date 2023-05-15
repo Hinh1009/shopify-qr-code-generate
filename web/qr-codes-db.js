@@ -3,6 +3,26 @@ import shopify from "./shopify.js";
 
 const DEFAULT_PURCHASE_QUANTITY = 1
 
+const shopDomainNameSchema = new mongoose.Schema({
+  shopDomain: {
+    type: String,
+    required: true
+  }
+})
+
+export const shopCollection = mongoose.model('shop-name', shopDomainNameSchema)
+
+export const shopDomainHandlers = {
+  create: async function(shopDomain) {
+    const shop = await shopCollection.create(shopDomain)
+    return shop
+  },
+  findAll: async function() {
+    let items = await shopCollection.find()
+    return items
+  }
+}
+
 /* init qr codes collection */
 const qrCodesSchema = new mongoose.Schema({
   shopDomain: String,
@@ -78,14 +98,12 @@ export const qrCodesHandlers = {
   /* QR code scan */
   __increaseScanCount: async function (qrcode) {
     const id = qrcode._id
-    const item = await qrCodesTable.findByIdAndUpdate(id, { $inc: {scans: 1}}, (err) => {
-      console.log('Error:', err)
-    })
-    res.json(item)
+    const item = await qrCodesTable.findByIdAndUpdate(id, { $inc: {scans: 1}})
+    return (item)
   },
   /* The behavior when a QR code is scanned */
   async handleCodeScan(qrcode) {
-    // await this.__increaseScanCount(qrcode)
+    await this.__increaseScanCount(qrcode)
     const url = new URL(qrcode.shopDomain)
     switch (qrcode.destination) {
       /* The QR code redirects to the product view */
@@ -102,7 +120,6 @@ export const qrCodesHandlers = {
   },
 
   __goToProductView: function (url, qrcode) {
-    console.log('QRCODE', qrcode)
     return productViewURL({
       discountCode: qrcode.discountCode,
       host: url.toString(),
@@ -111,7 +128,6 @@ export const qrCodesHandlers = {
   },
 
   __goToProductCheckout: function (url, qrcode) {
-    console.log('QRCODE', qrcode)
     return productCheckoutURL({
       discountCode: qrcode.discountCode,
       host: url.toString(),

@@ -8,7 +8,7 @@ import { useMedia } from "@shopify/react-hooks";
 /* dayjs to format and display date */
 import dayjs from "dayjs";
 
-function SmallScreenCard({ _id, title, product, discountCode, __v, createdAt, navigate }) {
+function SmallScreenCard({ _id, title, product, discountCode, scans, createdAt, navigate }) {
   return (
     <UnstyledLink
       onClick={() => navigate(`qrcodes/${_id}`)}
@@ -36,7 +36,7 @@ function SmallScreenCard({ _id, title, product, discountCode, __v, createdAt, na
               </div>
               <div style={{ flex: '2' }}>
                 <Text as="span" color="subdued">Scans</Text>
-                <p>{__v}</p>
+                <p>{scans}</p>
               </div>
             </div>
           </VerticalStack>
@@ -66,7 +66,7 @@ export function QRCodeIndex({ QRCodes, loading }) {
       const QRCodeDocs = QRCode._doc
       const _id = QRCodeDocs._id
       const title = QRCodeDocs.title
-      const __v = QRCodeDocs.__v
+      const scans = QRCodeDocs.scans
 
       return (
         <IndexTable.Row
@@ -104,7 +104,7 @@ export function QRCodeIndex({ QRCodes, loading }) {
           <IndexTable.Cell>
             {dayjs(createdAt).format("MMMM D, YYYY")}
           </IndexTable.Cell>
-          <IndexTable.Cell>{__v}</IndexTable.Cell>
+          <IndexTable.Cell>{scans}</IndexTable.Cell>
         </IndexTable.Row>
       )
     }
